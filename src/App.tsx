@@ -7,7 +7,6 @@ import { Login } from "./pages/auth/Login";
 import { Register } from "./pages/auth/Register";
 import { Dashboard } from "./pages/Dashboard";
 import { Products } from "./pages/Products";
-import { Orders } from "./pages/Orders";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import { useAuth } from "./hooks/useAuth";
@@ -49,7 +48,7 @@ const App = () => (
             path="/orders" 
             element={
               <ProtectedRoute>
-                <Orders />
+                <div>Siparişler sayfası (yakında)</div>
               </ProtectedRoute>
             } 
           />

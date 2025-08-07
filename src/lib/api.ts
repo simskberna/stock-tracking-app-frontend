@@ -1,4 +1,4 @@
-import {User, Product, Order, Notification, Metric} from '@/types';
+import {User, Product, Order, Metric} from '@/types';
 import { apiClient } from "@/lib/apiClient.ts";
 
 

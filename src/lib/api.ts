@@ -1,4 +1,4 @@
-import {User, Product, Order, Metric} from '@/types';
+import {User, Product, Order, Metric, GetProductsResponse} from '@/types';
 import { apiClient } from "@/lib/apiClient.ts";
 
 
@@ -17,8 +17,10 @@ export const api = {
     await apiClient.post('/auth/logout');
   },
 
-  getProducts: async (): Promise<Product[]> => {
-    const res = await apiClient.get('/products/list/');
+  getProducts: async (skip: number, limit: number): Promise<GetProductsResponse> => {
+    const res = await apiClient.get('/products/list/',{
+      params: {skip,limit}
+    });
     return res.data;
   },
 

@@ -15,6 +15,11 @@ export interface Product {
   critical_stock: number;
 }
 
+export interface GetProductsResponse {
+  data: Product[];
+  total: number;
+}
+
 export interface Order {
   order_date: string;
   quantity: number;
@@ -30,15 +35,6 @@ export interface OrderItem {
   productName: string;
   quantity: number;
   price: number;
-}
-
-export interface Notification {
-  id: string;
-  type: 'low_stock' | 'order_update' | 'system';
-  title: string;
-  message: string;
-  read: boolean;
-  createdAt: string;
 }
 
 export interface AuthState {

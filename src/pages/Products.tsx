@@ -22,12 +22,15 @@ export const Products = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-
+  const [skip, setSkip] = useState(0);
+  const [limit] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
 
   const fetchProducts = async () => {
     try {
-      const data = await api.getProducts();
-      setProducts(data);
+      const data = await api.getProducts(skip, limit);
+      setProducts(data.data);
+      setTotalCount(data.total || 100);
     } catch (error) {
       console.error('Error fetching products:', error);
       toast({
@@ -82,8 +85,9 @@ export const Products = () => {
 
 
   useEffect(() => {
+    setLoading(true);
     fetchProducts();
-  }, []);
+  }, [skip, limit])
 
   useEffect(() => {
     const filtered = products.filter(product =>
@@ -159,8 +163,8 @@ export const Products = () => {
                   <TableHead>Fiyat</TableHead>
                   <TableHead>Stok</TableHead>
                   <TableHead>Durum</TableHead>
-                  <TableHead>Tedarikçi</TableHead>
-                  <TableHead>İşlemler</TableHead>
+                  {/*<TableHead>Tedarikçi</TableHead>*/}
+                  {/*<TableHead>İşlemler</TableHead>*/}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -221,6 +225,23 @@ export const Products = () => {
                   );
                 })}
               </TableBody>
+              <div className="flex justify-between items-center mt-4">
+                <Button
+                    onClick={() => setSkip(prev => Math.max(prev - limit, 0))}
+                    disabled={skip === 0}
+                >
+                  Önceki
+                </Button>
+
+                <div>Sayfa {Math.floor(skip / limit) + 1} / {Math.ceil(totalCount / limit)}</div>
+
+                <Button
+                    onClick={() => setSkip(prev => prev + limit)}
+                    disabled={skip + limit >= totalCount}
+                >
+                  Sonraki
+                </Button>
+              </div>
             </Table>
           </CardContent>
         </Card>

@@ -10,7 +10,7 @@ export const Layout = ({ children }: LayoutProps) => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <div className="flex">
+      <div className="flex min-h-screen">
         <Sidebar />
         <main className="flex-1 p-6">
           {children}

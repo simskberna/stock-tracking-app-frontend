@@ -20,9 +20,10 @@ export const useAuth = create<AuthStore>()(
       login: async (email: string, password: string) => {
         set({ isLoading: true });
         try {
-          const { user, token } = await api.login(email, password);
-          localStorage.setItem('token', token);
-          set({ user, isAuthenticated: true });
+          const { access_token } = await api.login(email, password);
+          localStorage.setItem('token', access_token);
+          set({  isAuthenticated: true });
+            // eslint-disable-next-line no-useless-catch
         } catch (error) {
           throw error;
         } finally {
@@ -33,9 +34,10 @@ export const useAuth = create<AuthStore>()(
       register: async (name: string, email: string, password: string) => {
         set({ isLoading: true });
         try {
-          const { user, token } = await api.register(name, email, password);
-          localStorage.setItem('token', token);
-          set({ user, isAuthenticated: true });
+          const { access_token } = await api.register(name, email, password);
+          localStorage.setItem('token', access_token);
+          set({  isAuthenticated: true });
+            // eslint-disable-next-line no-useless-catch
         } catch (error) {
           throw error;
         } finally {
@@ -48,7 +50,7 @@ export const useAuth = create<AuthStore>()(
         try {
           await api.logout();
           localStorage.removeItem('token');
-          set({ user: null, isAuthenticated: false });
+          set({ isAuthenticated: false });
         } catch (error) {
           console.error('Logout error:', error);
         } finally {
@@ -60,9 +62,9 @@ export const useAuth = create<AuthStore>()(
     }),
     {
       name: 'auth-storage',
-      partialize: (state) => ({ 
-        user: state.user, 
-        isAuthenticated: state.isAuthenticated 
+      partialize: (state) => ({
+        user: state.user,
+        isAuthenticated: state.isAuthenticated
       }),
     }
   )

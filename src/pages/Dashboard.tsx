@@ -4,22 +4,30 @@ import { Badge } from '@/components/ui/badge';
 import { Package, ShoppingCart, AlertTriangle, TrendingUp } from 'lucide-react';
 import { Layout } from '@/components/Layout/Layout';
 import { api } from '@/lib/api';
-import { Product, Order } from '@/types';
+import { Product, Order,Metric } from '@/types';
 
 export const Dashboard = () => {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [criticalStockProducts, setCriticalStockProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [metrics, setMetrics] = useState<Metric>({
+    critical_stock_count: 0,
+    total_orders: 0,
+    total_orders_revenue: 0,
+    total_products_count: 0
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [productsData, ordersData] = await Promise.all([
-          api.getProducts(),
+        const [ordersData, metricsData,criticalStockProducts] = await Promise.all([
           api.getOrders(),
+          api.getMetrics(),
+          api.getCriticalStockProducts()
         ]);
-        setProducts(productsData);
         setOrders(ordersData);
+        setMetrics(metricsData);
+        setCriticalStockProducts(criticalStockProducts);
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -30,8 +38,8 @@ export const Dashboard = () => {
     fetchData();
   }, []);
 
-  const lowStockProducts = products.filter(p => p.stock <= p.minStock);
-  const totalRevenue = orders.reduce((sum, order) => sum + order.totalAmount, 0);
+  const lowStockProducts = metrics.critical_stock_count
+  const totalRevenue = metrics.total_orders_revenue
 
   if (loading) {
     return (
@@ -48,7 +56,6 @@ export const Dashboard = () => {
     <Layout>
       <div className="space-y-6">
         <h2 className="text-3xl font-bold">Dashboard</h2>
-        
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
@@ -57,7 +64,7 @@ export const Dashboard = () => {
               <Package className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{products.length}</div>
+              <div className="text-2xl font-bold">{metrics.total_products_count}</div>
             </CardContent>
           </Card>
 
@@ -67,7 +74,7 @@ export const Dashboard = () => {
               <ShoppingCart className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{orders.length}</div>
+              <div className="text-2xl font-bold">{metrics.total_products_count}</div>
             </CardContent>
           </Card>
 
@@ -77,7 +84,7 @@ export const Dashboard = () => {
               <AlertTriangle className="h-4 w-4 text-destructive" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-destructive">{lowStockProducts.length}</div>
+              <div className="text-2xl font-bold text-destructive">{lowStockProducts}</div>
             </CardContent>
           </Card>
 
@@ -87,13 +94,13 @@ export const Dashboard = () => {
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">₺{totalRevenue.toLocaleString()}</div>
+              <div className="text-2xl font-bold">₺{totalRevenue?.toLocaleString()}</div>
             </CardContent>
           </Card>
         </div>
 
         {/* Low Stock Alert */}
-        {lowStockProducts.length > 0 && (
+        {metrics.critical_stock_count > 0 && (
           <Card className="border-destructive">
             <CardHeader>
               <CardTitle className="text-destructive">Düşük Stok Uyarısı</CardTitle>
@@ -103,11 +110,11 @@ export const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                {lowStockProducts.map(product => (
+                {criticalStockProducts.map(product => (
                   <div key={product.id} className="flex items-center justify-between">
                     <span className="font-medium">{product.name}</span>
                     <Badge variant="destructive">
-                      {product.stock}/{product.minStock}
+                      {product.stock}/{product.critical_stock}
                     </Badge>
                   </div>
                 ))}
@@ -126,16 +133,20 @@ export const Dashboard = () => {
               <div className="text-muted-foreground">Henüz sipariş yok</div>
             ) : (
               <div className="space-y-2">
-                {orders.slice(0, 5).map(order => (
+                {orders.slice(0, 5).map((order,i) => (
                   <div key={order.id} className="flex items-center justify-between border-b pb-2">
                     <div>
-                      <div className="font-medium">{order.customerName}</div>
-                      <div className="text-sm text-muted-foreground">{order.customerEmail}</div>
+                      <div className="font-medium">Customer {i}</div>
+                      <div className="text-sm text-muted-foreground">customer-{i}@example.com</div>
+                      <span>Product: {order.product_id}</span><br/>
+                      <span>Quantity: {order.quantity}</span><br/>
+                      <span>Order Date: {order.order_date}</span><br/>
+
                     </div>
                     <div className="text-right">
-                      <div className="font-medium">₺{order.totalAmount.toLocaleString()}</div>
+                      <div className="font-medium">₺{order?.total?.toLocaleString()}</div>
                       <Badge variant={order.status === 'pending' ? 'secondary' : 'default'}>
-                        {order.status}
+                        {order.status || 'completed'}
                       </Badge>
                     </div>
                   </div>

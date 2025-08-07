@@ -6,8 +6,8 @@ import { useLocation, Link } from 'react-router-dom';
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: BarChart3 },
   { name: 'Ürünler', href: '/products', icon: Package },
-  { name: 'Siparişler', href: '/orders', icon: ShoppingCart },
-  { name: 'Ayarlar', href: '/settings', icon: Settings },
+  // { name: 'Siparişler', href: '/orders', icon: ShoppingCart },
+  // { name: 'Ayarlar', href: '/settings', icon: Settings },
 ];
 
 export const Sidebar = () => {
@@ -19,7 +19,7 @@ export const Sidebar = () => {
         {navigation.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.href;
-          
+
           return (
             <Button
               key={item.name}

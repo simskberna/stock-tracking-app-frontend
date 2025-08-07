@@ -1,8 +1,6 @@
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Bell, LogOut, User } from 'lucide-react';
+import {Badge, Bell, LogOut, User} from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { useWebSocket } from '@/hooks/useWebSocket';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,10 +9,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {useWebSocket} from "@/contexts/WebSocketContext.tsx";
 
 export const Header = () => {
   const { user, logout } = useAuth();
-  const { notifications, unreadCount, markAsRead } = useWebSocket();
+  const { message } = useWebSocket();
+
+
 
   const handleLogout = async () => {
     try {
@@ -23,7 +24,6 @@ export const Header = () => {
       console.error('Logout failed:', error);
     }
   };
-
   return (
     <header className="border-b border-border bg-background px-6 py-4">
       <div className="flex items-center justify-between">
@@ -38,42 +38,35 @@ export const Header = () => {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="h-5 w-5" />
-                {unreadCount > 0 && (
-                  <Badge 
-                    variant="destructive" 
-                    className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs p-0"
-                  >
-                    {unreadCount}
-                  </Badge>
-                )}
+                {message &&
+                    <Badge
+                        className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs p-0"
+                    >
+
+                    </Badge>}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-80">
               <DropdownMenuLabel>Bildirimler</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              {notifications.length === 0 ? (
+              {!message ? (
                 <div className="p-4 text-center text-muted-foreground">
                   Yeni bildirim yok
                 </div>
               ) : (
-                notifications.slice(0, 5).map((notification) => (
                   <DropdownMenuItem
-                    key={notification.id}
-                    className="flex flex-col items-start p-4 cursor-pointer"
-                    onClick={() => markAsRead(notification.id)}
+                      key={message.product_id}
+                      className="flex flex-col items-start p-4 cursor-pointer"
                   >
                     <div className="flex items-center justify-between w-full">
-                      <span className="font-medium text-sm">{notification.title}</span>
-                      {!notification.read && (
-                        <div className="w-2 h-2 bg-primary rounded-full" />
-                      )}
+                      <span className="font-medium text-sm">{message.name +', id:'+message.product_id} ürünün stoğu azaldı!</span>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {notification.message}
+                      Güncel stock{message.stock}
                     </p>
                   </DropdownMenuItem>
-                ))
-              )}
+                )
+              }
             </DropdownMenuContent>
           </DropdownMenu>
 

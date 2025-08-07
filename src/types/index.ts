@@ -7,27 +7,22 @@ export interface User {
 }
 
 export interface Product {
-  id: string;
+  id: number;
   name: string;
   description: string;
-  category: string;
   price: number;
   stock: number;
-  minStock: number;
-  supplier: string;
-  createdAt: string;
-  updatedAt: string;
+  critical_stock: number;
 }
 
 export interface Order {
+  order_date: string;
+  quantity: number;
+  product_id: number;
+  total: number;
   id: string;
-  customerName: string;
-  customerEmail: string;
   products: OrderItem[];
-  totalAmount: number;
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  createdAt: string;
-  updatedAt: string;
 }
 
 export interface OrderItem {
@@ -50,4 +45,11 @@ export interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+}
+
+export interface Metric {
+  "critical_stock_count": number,
+  "total_products_count": number,
+  "total_orders": number,
+  "total_orders_revenue": number
 }

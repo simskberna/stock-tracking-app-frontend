@@ -12,6 +12,7 @@ import { Layout } from '@/components/Layout/Layout';
 import { api } from '@/lib/api';
 import { Product } from '@/types';
 import { toast } from '@/hooks/use-toast';
+import ProductAddForm from "@/components/ProductAddForm.tsx";
 
 export const Products = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -20,19 +21,8 @@ export const Products = () => {
   const [loading, setLoading] = useState(true);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  useEffect(() => {
-    const filtered = products.filter(product =>
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.supplier.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredProducts(filtered);
-  }, [products, searchTerm]);
 
   const fetchProducts = async () => {
     try {
@@ -70,15 +60,37 @@ export const Products = () => {
     }
   };
 
+  const handleAddProduct = async (product: Omit<Product, 'id'>) => {
+    try {
+      const created_product = await api.addProduct(product);
+      setProducts((prev) => [...prev, created_product]);
+      toast({ title: "Başarılı", description: "Yeni ürün eklendi." });
+    } catch (err) {
+      toast({ title: "Hata", description: "Ürün eklenirken hata oluştu.", variant: "destructive" });
+    }
+  };
+
   const getStockStatus = (product: Product) => {
-    if (product.stock <= product.minStock) {
+    if (product.stock <= product.critical_stock) {
       return { status: 'low', color: 'destructive' as const };
     }
-    if (product.stock <= product.minStock * 1.5) {
+    if (product.stock <= product.critical_stock * 1.5) {
       return { status: 'medium', color: 'secondary' as const };
     }
     return { status: 'good', color: 'default' as const };
   };
+
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  useEffect(() => {
+    const filtered = products.filter(product =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredProducts(filtered);
+  }, [products, searchTerm]);
 
   if (loading) {
     return (
@@ -96,10 +108,27 @@ export const Products = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-3xl font-bold">Ürünler</h2>
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Yeni Ürün
-          </Button>
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={() => setIsAddDialogOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Yeni Ürün
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Yeni Ürün Ekle</DialogTitle>
+                <DialogDescription>Yeni bir ürün tanımlayın</DialogDescription>
+              </DialogHeader>
+              <ProductAddForm
+                  onSave={(newProduct) => {
+                    handleAddProduct(newProduct);
+                    setIsAddDialogOpen(false);
+                  }}
+                  onCancel={() => setIsAddDialogOpen(false)}
+              />
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* Search */}
@@ -137,27 +166,26 @@ export const Products = () => {
               <TableBody>
                 {filteredProducts.map((product) => {
                   const stockStatus = getStockStatus(product);
-                  
+
                   return (
                     <TableRow key={product.id}>
                       <TableCell className="font-medium">{product.name}</TableCell>
-                      <TableCell>{product.category}</TableCell>
                       <TableCell>₺{product.price.toLocaleString()}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          {product.stock <= product.minStock && (
+                          {product.stock <= product.critical_stock && (
                             <AlertTriangle className="h-4 w-4 text-destructive" />
                           )}
-                          {product.stock}/{product.minStock}
+                          {product.stock}/{product.critical_stock}
                         </div>
                       </TableCell>
                       <TableCell>
                         <Badge variant={stockStatus.color}>
-                          {stockStatus.status === 'low' ? 'Düşük' : 
+                          {stockStatus.status === 'low' ? 'Düşük' :
                            stockStatus.status === 'medium' ? 'Orta' : 'İyi'}
                         </Badge>
                       </TableCell>
-                      <TableCell>{product.supplier}</TableCell>
+
                       <TableCell>
                         <Dialog open={isDialogOpen && editingProduct?.id === product.id} onOpenChange={setIsDialogOpen}>
                           <DialogTrigger asChild>
@@ -220,13 +248,14 @@ const ProductEditForm = ({ product, onSave, onCancel }: ProductEditFormProps) =>
       <div className="space-y-2">
         <Label htmlFor="name">Ürün Adı</Label>
         <Input
+          disabled={true}
           id="name"
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           required
         />
       </div>
-      
+
       <div className="space-y-2">
         <Label htmlFor="description">Açıklama</Label>
         <Textarea
@@ -247,7 +276,7 @@ const ProductEditForm = ({ product, onSave, onCancel }: ProductEditFormProps) =>
             required
           />
         </div>
-        
+
         <div className="space-y-2">
           <Label htmlFor="stock">Stok</Label>
           <Input
@@ -266,32 +295,32 @@ const ProductEditForm = ({ product, onSave, onCancel }: ProductEditFormProps) =>
           <Input
             id="minStock"
             type="number"
-            value={formData.minStock}
-            onChange={(e) => setFormData({ ...formData, minStock: Number(e.target.value) })}
+            value={formData.critical_stock}
+            onChange={(e) => setFormData({ ...formData, critical_stock: Number(e.target.value) })}
             required
           />
         </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="category">Kategori</Label>
-          <Input
-            id="category"
-            value={formData.category}
-            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-            required
-          />
-        </div>
+
+        {/*<div className="space-y-2">*/}
+        {/*  <Label htmlFor="category">Kategori</Label>*/}
+        {/*  <Input*/}
+        {/*    id="category"*/}
+        {/*    value={formData.category}*/}
+        {/*    onChange={(e) => setFormData({ ...formData, category: e.target.value })}*/}
+        {/*    required*/}
+        {/*  />*/}
+        {/*</div>*/}
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="supplier">Tedarikçi</Label>
-        <Input
-          id="supplier"
-          value={formData.supplier}
-          onChange={(e) => setFormData({ ...formData, supplier: e.target.value })}
-          required
-        />
-      </div>
+      {/*<div className="space-y-2">*/}
+      {/*  <Label htmlFor="supplier">Tedarikçi</Label>*/}
+      {/*  <Input*/}
+      {/*    id="supplier"*/}
+      {/*    value={formData.supplier}*/}
+      {/*    onChange={(e) => setFormData({ ...formData, supplier: e.target.value })}*/}
+      {/*    required*/}
+      {/*  />*/}
+      {/*</div>*/}
 
       <div className="flex justify-end gap-2">
         <Button type="button" variant="outline" onClick={onCancel}>

@@ -10,7 +10,7 @@ export const connectWebSocket = () => {
         console.warn('No token found');
         return;
     }
-    socket = new WebSocket(`ws://localhost:8000/ws?token=${token}`);
+    socket = new WebSocket(`wss://stock-tracking-app-backend-3xpv.onrender.com/ws?token=${token}`);
 
     socket.onopen = () => {
         console.log('WebSocket connected');

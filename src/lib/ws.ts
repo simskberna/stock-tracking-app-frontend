@@ -20,12 +20,14 @@ export const connectWebSocket = () => {
         const data = JSON.parse(event.data);
         console.log('Received:', data);
 
-        listeners.forEach((listener) => listener(data));
+        if(data && data.product_id){
+            listeners.forEach((listener) => listener(data));
 
-        toast({
-            title: "Critical Stock Alert!",
-            description: "Check Products",
-        });
+            toast({
+                title: "Critical Stock Alert!",
+                description: "Check Products",
+            })
+        };
     };
 
     socket.onerror = (error) => {

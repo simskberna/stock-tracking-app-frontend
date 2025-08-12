@@ -23,7 +23,9 @@ export const WebSocketProvider = ({ children }: { children: React.ReactNode }) =
         connectWebSocket();
 
         const unsubscribe = subscribeToMessages((data) => {
-            setMessage(data);
+            if(data && data.product_id){
+                setMessage(data);
+            }
         });
 
         return () => {

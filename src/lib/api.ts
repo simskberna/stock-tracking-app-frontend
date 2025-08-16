@@ -44,5 +44,9 @@ export const api = {
     const res = await apiClient.get('/products/critical_stock_list/');
     return res.data;
   },
+  getDemandForecast: async (): Promise<{date: string, predicted_demand: number}[]> => {
+    const res = await apiClient.get('/forecast/demand-forecast');
+    return res.data;
+  }
 
 };
